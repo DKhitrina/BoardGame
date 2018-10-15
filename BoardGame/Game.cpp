@@ -2,29 +2,40 @@
 
 using namespace std;
 
-class Desk {
-private:
+class Board {
 	int arraysize;
-	int** arrayidx;
+	char** arrayidx;
 	int check_diag_1(int x, int y);
 	int check_diag_2(int x, int y);
 	int check_vert(int x, int y);
 	int check_goriz(int x, int y);
 public:
-	Desk(int size);		//create desk with given average
-	~Desk();			//delete desk
+	Board(int size);		//create desk with given average
+	~Board();			//delete desk
 	void AddPoint(int playernumber, int cord_x, int cord_y);
 	void PrintDesk();
 	int Check(int cord_x, int cord_y);		//check for winning situation
 };
 
-int Desk::check_diag_1(int x, int y)
+/*
+class Player {
+	int player_number;
+	char player_sign;						// how player will be prodused on a board
+public:
+	Player(int numb, char sign);
+	~Player();
+	int GetNumber();
+	void Move(Board b, int x, int y);	// тут где-то должны быть ссылки потому что доска должна изменяться
+	void ShowBoard(Board b);
+};*/
+
+int Board::check_diag_1(int x, int y)
 {
 	int i = 0;
 	int j = 0;
 	int count = 0;
 	int flag = 0;
-	int a = arrayidx[x][y];
+	char a = arrayidx[x][y];
 
 	if (x >= 4 && y >= 4) {
 		i = x - 4; j = y - 4;
@@ -46,9 +57,9 @@ int Desk::check_diag_1(int x, int y)
 	return flag;
 }
 
-int Desk::check_diag_2(int x, int y)  //шкипер, у нас проблема
+int Board::check_diag_2(int x, int y)  //шкипер, у нас проблема
 {
-	int a = arrayidx[x][y];
+	char a = arrayidx[x][y];
 	int i = 0, j = 0, count = 0, flag = 0;
 	if (x >= 4 && y <= arraysize - 5) {
 		i = x - 4; j = y - 4;
@@ -73,9 +84,9 @@ int Desk::check_diag_2(int x, int y)  //шкипер, у нас проблема
 	return flag;
 }
 
-int Desk::check_vert(int x, int y)
+int Board::check_vert(int x, int y)
 {
-	int a = arrayidx[x][y];
+	char a = arrayidx[x][y];
 	int j = 0, count = 0, flag = 0;
 	if (y >= 4)
 		j = y-4;
@@ -91,9 +102,9 @@ int Desk::check_vert(int x, int y)
 	return flag;
 }
 
-int Desk::check_goriz(int x, int y)
+int Board::check_goriz(int x, int y)
 {
-	int a = arrayidx[x][y];
+	char a = arrayidx[x][y];
 	int i = 0, count = 0, flag = 0;
 	if (x >= 4)
 		i = x - 4;
@@ -109,25 +120,25 @@ int Desk::check_goriz(int x, int y)
 	return flag;
 }
 
-Desk::Desk(int size)
+Board::Board(int size)
 {
 	arraysize = size;
-	int **dynamic_array = new int*[arraysize];
+	char **dynamic_array = new char*[arraysize];
 	for (int i = 0; i < arraysize; i++)
-		dynamic_array[i] = new int[arraysize];
+		dynamic_array[i] = new char[arraysize];
 	arrayidx = dynamic_array;
 	for (int i = 0; i < arraysize; i++)
 		for (int j = 0; j < arraysize; j++)
 			dynamic_array[i][j] = '-';
 }
 
-Desk::~Desk()
+Board::~Board()
 {
 	for (int i = 0; i < arraysize; i++)
 		delete[] arrayidx[i];
 }
 
-void Desk::AddPoint(int playernumber, int cord_x, int cord_y)
+void Board::AddPoint(int playernumber, int cord_x, int cord_y)
 {
 	if (playernumber == 1)
 		arrayidx[cord_x][cord_y] = 'X';
@@ -135,7 +146,7 @@ void Desk::AddPoint(int playernumber, int cord_x, int cord_y)
 		arrayidx[cord_x][cord_y] = 'O';
 }
 
-void Desk::PrintDesk()
+void Board::PrintDesk()
 {
 	cout << "  ";
 	for (int i = 0; i < arraysize; i++)
@@ -149,7 +160,7 @@ void Desk::PrintDesk()
 	}
 }
 
-int Desk::Check(int cord_x, int cord_y)
+int Board::Check(int cord_x, int cord_y)
 {
 	if (check_diag_1(cord_x, cord_y) + check_diag_2(cord_x, cord_y)
 		+ check_goriz(cord_x, cord_y)
@@ -167,13 +178,13 @@ int main()
 	cout << "Game 'five in a row'. Please enter the size of square playing "
 		<<"field, (integer >5)\n";
 	cin >> desksize;
-	Desk d(desksize);
+	Board d(desksize);
 	cout << "Rules: Players take turns setting points on the field. The goal"
 		<< " is to put five points in a row faster than the opponent.\n"
 		<< "Please enter the cordinates of the point separated by a space,"
 		<< " first a column, then a line\n";
 	d.PrintDesk();
-	/*while (i < desksize * desksize) 				//main game cycle
+	while (i < desksize * desksize) 				//main game cycle
 	{
 		int pl_num, cord_x, cord_y;
 		if (i % 2 == 0)								//who is playing
@@ -186,12 +197,12 @@ int main()
 		d.PrintDesk();
 		if (d.Check(cord_x, cord_y) == 1)							//check for winning situation
 		{
-			cout << "GAME IS OVER. THE WINNER IS PLAYER " << pl_num << "\n");
+			cout << "GAME IS OVER. THE WINNER IS PLAYER " << pl_num << "\n";
 			break;
 		}
 		i++;										//next move
 	}
 	if (i == desksize * desksize)					//situation of draw
-	*/	cout << "GAME IS OVER. DRAW\n";
+	cout << "GAME IS OVER. DRAW\n";
 	return 0;
 }
