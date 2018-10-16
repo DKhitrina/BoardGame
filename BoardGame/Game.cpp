@@ -12,22 +12,76 @@ class Board {
 public:
 	Board(int size);		//create desk with given average
 	~Board();			//delete desk
-	void AddPoint(int playernumber, int cord_x, int cord_y);
-	void PrintDesk();
-	int Check(int cord_x, int cord_y);		//check for winning situation
+	int AddPoint(char playersign, int cord_x, int cord_y);
+	void PrintBoard();
+	bool Check(int cord_x, int cord_y);		//check for winning situation
 };
 
-/*
 class Player {
 	int player_number;
 	char player_sign;						// how player will be prodused on a board
 public:
+	Player();
 	Player(int numb, char sign);
-	~Player();
-	int GetNumber();
-	void Move(Board b, int x, int y);	// тут где-то должны быть ссылки потому что доска должна изменяться
-	void ShowBoard(Board b);
-};*/
+	int Move(Board &b, int x, int y);
+	//virtual void AnalyseBoard(Board b);
+};
+
+class Arbitrator {
+	int number_of_players;
+	int current_player;
+	Player* players_array;
+public:
+	Arbitrator(int numb);
+	~Arbitrator();
+	Player Turn();
+	int GetTurnNumber() { return current_player; }
+	Player GetPlayer() { return players_array[current_player-1]; }
+};
+
+Arbitrator::Arbitrator(int numb)
+{
+	number_of_players = numb;
+	current_player = 1;
+	Player* pl = new Player[number_of_players];
+	players_array = pl;
+	for (int i = 0; i < number_of_players; i++)
+	{
+		Player p(i+1, 65+i);		//65 - ASCII code for 'A'
+		pl[i] = p;
+	}
+}
+
+Arbitrator::~Arbitrator()
+{
+	delete[] players_array;
+}
+
+Player Arbitrator::Turn()
+{
+	if (current_player < number_of_players)
+		current_player++;
+	else
+		current_player = 1;
+	return players_array[current_player-1];
+}
+
+Player::Player()
+{
+	player_number = 0;
+	player_sign = 0;
+}
+
+Player::Player(int numb, char sign)
+{
+	player_number = numb;
+	player_sign = sign;
+}
+
+int Player::Move(Board &b, int x, int y)
+{
+	return b.AddPoint(player_sign, x, y);
+}
 
 int Board::check_diag_1(int x, int y)
 {
@@ -138,15 +192,20 @@ Board::~Board()
 		delete[] arrayidx[i];
 }
 
-void Board::AddPoint(int playernumber, int cord_x, int cord_y)
+int Board::AddPoint(char playersign, int cord_x, int cord_y)
 {
-	if (playernumber == 1)
-		arrayidx[cord_x][cord_y] = 'X';
+	if (cord_x >= arraysize || cord_y >= arraysize)
+		return 1;
+	if (arrayidx[cord_x][cord_y] == '-')
+	{
+			arrayidx[cord_x][cord_y] = playersign;
+			return 0;
+	}
 	else
-		arrayidx[cord_x][cord_y] = 'O';
+		return 1;
 }
 
-void Board::PrintDesk()
+void Board::PrintBoard()
 {
 	cout << "  ";
 	for (int i = 0; i < arraysize; i++)
@@ -160,49 +219,54 @@ void Board::PrintDesk()
 	}
 }
 
-int Board::Check(int cord_x, int cord_y)
+bool Board::Check(int cord_x, int cord_y)
 {
-	if (check_diag_1(cord_x, cord_y) + check_diag_2(cord_x, cord_y)
-		+ check_goriz(cord_x, cord_y)
-		+ check_vert(cord_x, cord_y) >= 1)
-		return 1;
-	else
-		return 0;
+	return(check_diag_1(cord_x, cord_y) || check_diag_2(cord_x, cord_y)
+		|| check_goriz(cord_x, cord_y)
+		|| check_vert(cord_x, cord_y));
 }
 
 
 int main()
 {
-	int desksize;
+	int desksize, playersnumber;
+	bool flag;
 	int i = 0;
 	cout << "Game 'five in a row'. Please enter the size of square playing "
 		<<"field, (integer >5)\n";
 	cin >> desksize;
 	Board d(desksize);
+	cout << "How many players there would be? \n";
+	cin >> playersnumber;
+	Arbitrator a(playersnumber);
+
 	cout << "Rules: Players take turns setting points on the field. The goal"
 		<< " is to put five points in a row faster than the opponent.\n"
 		<< "Please enter the cordinates of the point separated by a space,"
 		<< " first a column, then a line\n";
-	d.PrintDesk();
+	d.PrintBoard();
+	Player pl = a.GetPlayer();
 	while (i < desksize * desksize) 				//main game cycle
 	{
-		int pl_num, cord_x, cord_y;
-		if (i % 2 == 0)								//who is playing
-			pl_num = 1;
-		else
-			pl_num = 2;
-		cout << "Player " << pl_num << ":\n";		//invite player
+		int cord_x, cord_y;
+		cout << "Player " << a.GetTurnNumber() << ":\n";		//invite player
+
 		cin >> cord_x >> cord_y;					//take coordinates from player
-		d.AddPoint(pl_num, cord_x, cord_y);
-		d.PrintDesk();
-		if (d.Check(cord_x, cord_y) == 1)							//check for winning situation
+		if (pl.Move(d, cord_x, cord_y) == 1)
+			cout << "Please input correct coordinates next time\n";
+		d.PrintBoard();
+		if (d.Check(cord_x, cord_y) == 1)			//check for winning situation
 		{
-			cout << "GAME IS OVER. THE WINNER IS PLAYER " << pl_num << "\n";
+			cout << "GAME IS OVER. THE WINNER IS PLAYER " 
+				<< a.GetTurnNumber() << "\n";
+			flag = 1;
 			break;
 		}
+		pl = a.Turn();						//choose new player
 		i++;										//next move
 	}
-	if (i == desksize * desksize)					//situation of draw
-	cout << "GAME IS OVER. DRAW\n";
+	if (i == desksize * desksize && !flag)					//situation of draw
+		cout << "GAME IS OVER. DRAW\n";
+	cin >> desksize;
 	return 0;
 }
