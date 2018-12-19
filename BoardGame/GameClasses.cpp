@@ -64,6 +64,7 @@ void Arbitrator::Run()
 
 		if (board->IsWinFlag())			//check for winning situation
 		{
+			board->PrintBoard();
 			cout << "GAME IS OVER. THE WINNER IS PLAYER "
 				<< GetTurnNumber() << "\n";
 			break;
@@ -71,7 +72,10 @@ void Arbitrator::Run()
 		Turn();						//choose new player
 	}
 	if (board->CheckIfDraw() && !board->IsWinFlag())	//situation of draw
+	{
+		board->PrintBoard();
 		cout << "GAME IS OVER. DRAW\n";
+	}
 }
 
 Player::Player()
@@ -90,7 +94,7 @@ int Player::Move(Board *b)
 {
 	int x, y;
 	b->PrintBoard();
-	cout << "Player " << GetPlayerNumber() << ":\n";		//invite player
+	cout << "Player " << GetPlayerNumber() << ": ";		//invite player
 	cin >> x >> y;					//take coordinates from player
 	return b->AddPoint(player_sign, x, y);
 }
@@ -191,6 +195,7 @@ void Board::init(int size)
 	occupied_points = 0;
 	arraysize = size;
 	win_flag = 0;
+	possible_bot_moves = 0;
 	if (size > 0)
 	{
 		char **dynamic_array = new char*[arraysize];
@@ -205,6 +210,104 @@ void Board::init(int size)
 	else
 		arrayidx = 0;
 }
+
+void Board::update_bot_moves(int x, int y)
+{
+   // добавить окрестность точки в досягаемые
+   delete_bot_move(x, y);
+
+   add_bot_move(x+1, y+1);
+   add_bot_move(x+1, y);
+   add_bot_move(x+1, y-1);
+   add_bot_move(x, y+1);
+   add_bot_move(x-1, y-1);
+   add_bot_move(x-1, y);
+   add_bot_move(x, y-1);
+   add_bot_move(x-1, y+1);
+}
+
+void Board::add_bot_move(int x, int y)
+{
+	if (x>=0 && y>=0 && x<arraysize && y<arraysize && arrayidx[x][y] == '-')
+	{
+		// проверка не было ли уже такой точки в списке
+		struct bot_moves* bm1 = possible_bot_moves;
+		bool f = 0;
+		while (bm1 != 0)
+		{
+			if (bm1->x == x && bm1->y == y)
+			{
+				f = 1;
+				break;
+			}
+			bm1 = bm1->next;
+		}
+		//добавление точки, если таковой еще не было
+		if (!f)
+		{
+			struct bot_moves* bm2 = new bot_moves;
+//			bm2->weight_attaсk = calculate_attack();
+//			bm2->weight_defence = calculate_defence();
+			bm2->x = x;
+			bm2->y = y;
+			bm2->next = 0;
+			if (possible_bot_moves == 0)
+				possible_bot_moves = bm2;
+			else
+			{
+				struct bot_moves* bm3 = possible_bot_moves;
+				while (bm3->next != 0)
+					bm3 = bm3->next;
+				bm3->next = bm2;
+			}
+		}
+	}
+}
+
+void Board::delete_bot_move(int x, int y)
+{
+	struct bot_moves* bm4 = possible_bot_moves;
+	if (bm4 != 0)		// to avoid exeption after first move
+	{	//find element to delete
+		while (1)
+		{
+			if (bm4 == 0 || bm4->x == x && bm4->y == y)
+				break;
+			bm4 = bm4->next;
+		}
+		// delete element bm4
+		if (bm4 != 0)
+		{
+			struct bot_moves* bm_delete = bm4;
+			if (bm4 != possible_bot_moves)
+			{
+				struct bot_moves* bm_prev = possible_bot_moves;
+				while (bm_prev->next != bm4)
+					bm_prev = bm_prev->next;
+				if (bm4->next != 0)
+				{
+					bm4 = bm4->next;
+					bm_prev->next = bm4;
+				}
+				else
+					bm_prev->next = 0;
+			}
+			else
+				possible_bot_moves = bm4->next;
+			delete bm_delete;
+		}
+	}
+}
+
+/*int Board::calculate_attack()
+{
+
+}
+
+int Board::calculate_defence()
+{
+
+}*/
 
 Board::~Board()
 {
@@ -222,6 +325,7 @@ int Board::AddPoint(char playersign, int cord_x, int cord_y)
 		occupied_points++;
 		if (CheckIfWin(cord_x, cord_y) == 1)
 			win_flag = 1;
+		update_bot_moves(cord_x, cord_y);
 		return 0;
 	}
 	else

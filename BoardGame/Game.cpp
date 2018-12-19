@@ -7,11 +7,11 @@ using namespace std;
 
 int main()
 {
-	int desksize;
+	int desksize = 10;
 
-	cout << "Game 'five in a row'. Please enter the size of square playing "
-		<<"field, (integer >5)\n";
-	cin >> desksize;
+//	cout << "Game 'five in a row'. Please enter the size of square playing "
+//		<<"field, (integer >5)\n";
+//	cin >> desksize;
 
 	Board d(desksize);
 
