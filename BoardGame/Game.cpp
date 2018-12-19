@@ -1,13 +1,14 @@
 #include <iostream>
 #include "GameClasses.h"
 #include "GameBot.h"
+//#define DESKSIZE 10 ג פאיכו GameBot.h
 
 using namespace std;
 
 
 int main()
 {
-	int desksize = 10;
+	int desksize = DESKSIZE;
 
 //	cout << "Game 'five in a row'. Please enter the size of square playing "
 //		<<"field, (integer >5)\n";

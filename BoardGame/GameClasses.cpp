@@ -246,8 +246,8 @@ void Board::add_bot_move(int x, int y)
 		if (!f)
 		{
 			struct bot_moves* bm2 = new bot_moves;
-//			bm2->weight_attaсk = calculate_attack();
-//			bm2->weight_defence = calculate_defence();
+
+			bm2->weight = 0;
 			bm2->x = x;
 			bm2->y = y;
 			bm2->next = 0;
@@ -299,15 +299,6 @@ void Board::delete_bot_move(int x, int y)
 	}
 }
 
-/*int Board::calculate_attack()
-{
-
-}
-
-int Board::calculate_defence()
-{
-
-}*/
 
 Board::~Board()
 {

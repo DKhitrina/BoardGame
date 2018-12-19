@@ -1,8 +1,7 @@
 #pragma once
 
 	struct bot_moves{
-//		int weight_attaсk;		// по умолчанию 0, выставляется в зависимости от нападения или защиты
-//		int weight_defence;
+		int weight;		// по умолчанию 0, выставляется в зависимости от нападения или защиты
 		int x;
 		int y;
 		bot_moves* next;
@@ -21,8 +20,6 @@ class Board {
 	void update_bot_moves(int x, int y);
 	void add_bot_move(int x, int y);
 	void delete_bot_move(int x, int y);
-//	int calculate_attack();
-	//int calculate_defence();
 protected:
 	bool CheckIfWin(int cord_x, int cord_y);		//check for winning situation
 	void init(int size);
